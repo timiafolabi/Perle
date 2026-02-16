@@ -1,0 +1,9 @@
+id,title,category,price,size,fitsLike,condition,status,notes,images,createdAt,featured
+PTG-0001,Carhartt Work Jacket,Outerwear,45,L,L,Good,available,Light fading on cuffs,assets/items/ptg-0001-1.jpg|assets/items/ptg-0001-2.jpg,2026-02-15T00:00:00Z,false
+PTG-0002,Nike Embroidered Hoodie,Tops,35,M,M,Very Good,reserved,"Soft fleece interior, clean embroidery.",assets/items/ptg-0002-1.jpg|assets/items/ptg-0002-2.jpg,2026-02-16T10:00:00Z,false
+PTG-0003,Levi's 501 Denim,Bottoms,38,32,31-32,Good,available,Classic straight fit with natural fade.,assets/items/ptg-0003-1.jpg|assets/items/ptg-0003-2.jpg,2026-02-17T09:30:00Z,false
+PTG-0004,Vintage Windbreaker,Outerwear,30,XL,L-XL,Good,sold,"Bright color blocking, small mark on sleeve.",assets/items/ptg-0004-1.jpg|assets/items/ptg-0004-2.jpg,2026-02-14T14:45:00Z,false
+PTG-0005,Dickies Double-Knee Pants,Bottoms,40,34,34,Very Good,available,Durable workwear staple.,assets/items/ptg-0005-1.jpg|assets/items/ptg-0005-2.jpg,2026-02-18T08:15:00Z,false
+PTG-0006,Corduroy Snapback,Accessories,22,OS,OS,Excellent,available,"Adjustable strap, no flaws.",assets/items/ptg-0006-1.jpg|assets/items/ptg-0006-2.jpg,2026-02-18T10:00:00Z,false
+PTG-0007,Graphic Tee Bundle Piece,Under $40,25,S,S-M,Good,available,Soft vintage cotton feel.,assets/items/ptg-0007-1.jpg|assets/items/ptg-0007-2.jpg,2026-02-13T12:00:00Z,false
+PTG-0008,Wool Blend Overcoat,Outerwear,65,M,M,Very Good,available,"Tailored drape, ideal layering piece.",assets/items/ptg-0008-1.jpg|assets/items/ptg-0008-2.jpg,2026-02-19T07:00:00Z,true
