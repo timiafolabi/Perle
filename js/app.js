@@ -1,5 +1,5 @@
 const IG_HANDLE = '@perlethriftedgoods';
-const PLACEHOLDER_IMAGE = '/assets/items/placeholder.jpg';
+const PLACEHOLDER_IMAGE = 'assets/items/placeholder.jpg';
 const VALID_STATUSES = ['available', 'reserved', 'sold'];
 
 const state = {
@@ -423,7 +423,7 @@ function csvRowsToItems(rows) {
 }
 
 async function loadItems() {
-  const res = await fetch('/data/items.csv');
+  const res = await fetch('data/items.csv');
   if (!res.ok) throw new Error('Could not load inventory CSV');
 
   const csvText = await res.text();

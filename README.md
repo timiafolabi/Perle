@@ -21,14 +21,14 @@ Each row in `data/items.csv` must follow this exact header:
 
 ```csv
 id,title,category,price,size,fitsLike,condition,status,notes,images,createdAt,featured
-PTG-0001,Carhartt Work Jacket,Outerwear,45,L,L,Good,available,Light fading on cuffs,/assets/items/ptg-0001-1.jpg|/assets/items/ptg-0001-2.jpg,2026-02-15T00:00:00Z,false
+PTG-0001,Carhartt Work Jacket,Outerwear,45,L,L,Good,available,Light fading on cuffs,assets/items/ptg-0001-1.jpg|assets/items/ptg-0001-2.jpg,2026-02-15T00:00:00Z,false
 ```
 
 - Use `|` between multiple image paths in the `images` column.
 - Multi-image example:
 
 ```csv
-PTG-0011,Carpenter Denim,Bottoms,42,34,34,Very Good,available,Light fading on knee,/assets/items/ptg-0011-1.jpg|/assets/items/ptg-0011-2.jpg|/assets/items/ptg-0011-3.jpg,2026-02-21T12:00:00Z,true
+PTG-0011,Carpenter Denim,Bottoms,42,34,34,Very Good,available,Light fading on knee,assets/items/ptg-0011-1.jpg|assets/items/ptg-0011-2.jpg|assets/items/ptg-0011-3.jpg,2026-02-21T12:00:00Z,true
 ```
 - The first image is used as the card cover image; all images appear in the modal gallery.
 

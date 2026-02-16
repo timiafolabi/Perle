@@ -21,7 +21,7 @@ Use this checklist any time you need to update Perle inventory quickly from your
 3. Paste it as a new line in `data/items.csv`.
 4. Fill in all columns (`id`, `title`, `category`, `price`, `size`, `featured`, etc.).
 5. Add image paths in the `images` column using `|` to separate multiple images.
-   - Example: `/assets/items/ptg-0011-1.jpg|/assets/items/ptg-0011-2.jpg`
+   - Example: `assets/items/ptg-0011-1.jpg|assets/items/ptg-0011-2.jpg`
    - The first image is the cover image on catalog cards.
    - All images are shown in the modal gallery.
 6. Set `createdAt` in ISO format, e.g. `2026-02-20T16:00:00Z`.

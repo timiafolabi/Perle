@@ -9,8 +9,8 @@
   "status": "available",
   "notes": "Add any flaws, fabric notes, or fit details.",
   "images": [
-    "/assets/items/ptg-0009-1.jpg",
-    "/assets/items/ptg-0009-2.jpg"
+    "assets/items/ptg-0009-1.jpg",
+    "assets/items/ptg-0009-2.jpg"
   ],
   "createdAt": "2026-02-20T16:00:00Z",
   "featured": false
