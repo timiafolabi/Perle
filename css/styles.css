@@ -459,3 +459,75 @@ select,
 .perle-pick-badge.in-modal {
   margin-top: 0.2rem;
 }
+
+.reserve-helper {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.condition-guide-link-wrap {
+  margin: 0.65rem 0 0.2rem;
+}
+
+.condition-guide-trigger {
+  border: 1px solid #f3bfd3;
+  background: #fff3f8;
+  color: #7a2f4f;
+  border-radius: 999px;
+  padding: 0.35rem 0.72rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.condition-guide-trigger:hover,
+.condition-guide-trigger:focus-visible {
+  border-color: var(--accent-dark);
+  outline: none;
+}
+
+.condition-guide-panel {
+  width: min(520px, 95vw);
+}
+
+.email-capture {
+  margin-top: -0.7rem;
+}
+
+.email-form label {
+  font-size: 0.9rem;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.email-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+}
+
+.email-row input {
+  padding: 0.62rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.form-error {
+  min-height: 1.1rem;
+  margin: 0.35rem 0 0;
+  color: #8c1f1f;
+  font-size: 0.84rem;
+}
+
+.info-location {
+  margin: 0.2rem 0 1rem;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .email-row {
+    grid-template-columns: 1fr;
+  }
+}

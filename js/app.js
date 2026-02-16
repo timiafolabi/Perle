@@ -142,6 +142,7 @@ function renderGrid(items, root, { interactive = true, showEmptyMessage = true }
           <div><span class="price ${isSold ? 'sold' : ''}">${formatPrice(item.price)}</span>${statusBadge(item.status)}</div>
           <p class="meta">Size ${item.size} • ${item.condition}</p>
           <p class="item-id">${item.id}</p>
+          <p class="reserve-helper">DM @perlethriftedgoods with the ID or a screenshot to reserve.</p>
         </div>
       </article>
     `;
@@ -271,6 +272,77 @@ function buildModal(items) {
   });
 }
 
+
+function setupSmoothJumpLinks() {
+  const jumpLinks = document.querySelectorAll('.jump-links a[href^="#"]');
+  if (!jumpLinks.length) return;
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  jumpLinks.forEach((link) => {
+    link.addEventListener('click', (e) => {
+      const targetId = link.getAttribute('href');
+      const target = targetId ? document.querySelector(targetId) : null;
+      if (!target) return;
+
+      e.preventDefault();
+      target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+      history.replaceState(null, '', targetId);
+    });
+  });
+}
+
+function setupConditionGuide() {
+  const trigger = document.getElementById('condition-guide-trigger');
+  const modal = document.getElementById('condition-guide-modal');
+  const closeBtn = document.getElementById('condition-guide-close');
+  if (!trigger || !modal || !closeBtn) return;
+
+  function openGuide() {
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeGuide() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  trigger.addEventListener('click', openGuide);
+  closeBtn.addEventListener('click', closeGuide);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeGuide();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeGuide();
+  });
+}
+
+function setupEmailCapture() {
+  const form = document.getElementById('email-capture-form');
+  const emailInput = document.getElementById('notify-email');
+  const errorNode = document.getElementById('email-capture-error');
+  if (!form || !emailInput || !errorNode) return;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = (emailInput.value || '').trim();
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    if (!isValid) {
+      errorNode.textContent = 'Please enter a valid email address.';
+      emailInput.focus();
+      return;
+    }
+
+    errorNode.textContent = '';
+    const subject = encodeURIComponent('Perle — New Finds Notifications');
+    const body = encodeURIComponent(`Please add me to Perle notifications. My email: ${email}`);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  });
+}
+
 function setLastUpdated() {
   const node = document.getElementById('last-updated');
   if (!node) return;
@@ -286,6 +358,8 @@ function setupCatalog(items) {
   if (!status || !size || !sort || !search) return;
 
   setLastUpdated();
+  setupSmoothJumpLinks();
+  setupConditionGuide();
 
   const sizes = [...new Set(items.map((x) => x.size).filter(Boolean))].sort();
   size.innerHTML = '<option>All</option>' + sizes.map((s) => `<option>${s}</option>`).join('');
@@ -438,6 +512,7 @@ async function loadItems() {
     state.items = items;
     setupHome(items);
     setupCatalog(items);
+    setupEmailCapture();
   } catch (err) {
     const arrivalsNode = document.getElementById('arrivals-grid');
     if (arrivalsNode) arrivalsNode.innerHTML = '<p class="empty">Unable to load inventory right now.</p>';
