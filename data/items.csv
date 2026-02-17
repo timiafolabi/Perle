@@ -1,2 +1,3 @@
 id,title,category,price,size,fitsLike,condition,status,notes,images,createdAt,featured
 ptg-0001,Dallas Cowboys Full-Zip Hoodie Jacket,outerwear,20,L,L/XL,Very Good,available,"Navy Cowboys full-zip hoodie with white piping. Fits L/XL. Very good condition.","assets/items/ptg-0001-1.jpeg|assets/items/ptg-0001-2.jpeg|assets/items/ptg-0001-3.jpeg",2024-02-17,false
+ptg-0002,Dallas Cowboys Button-Up Shirt,tops,13,M,M,CONDITION_HERE,available,"Cowboys button-up with helmet graphic. Fits true Medium.",assets/items/ptg-0002-1.jpg|assets/items/ptg-0002-2.jpg|assets/items/ptg-0002-3.jpg,2026-02-17,false
