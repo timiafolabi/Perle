@@ -32,7 +32,7 @@ const CATALOG_SECTIONS = [
   { key: 'bottoms', match: (item) => item.category === 'Bottoms' },
   { key: 'outerwear', match: (item) => item.category === 'Outerwear' },
   { key: 'accessories', match: (item) => item.category === 'Accessories' },
-  { key: 'under-40', match: (item) => Number(item.price) <= 40 || item.category === 'Under $40' },
+  { key: 'under-25', match: (item) => Number(item.price) <= 25 || item.category === 'Under $25' },
   { key: 'recently-sold', match: (item) => (item.status || '').toLowerCase() === 'sold' }
 ];
 
@@ -121,10 +121,10 @@ function applyGlobalFilters(items, filters) {
   });
 }
 
-function renderGrid(items, root, { interactive = true, showEmptyMessage = true } = {}) {
+function renderGrid(items, root, { interactive = true, showEmptyMessage = true, emptyMessage = 'No items here right now — check back soon.' } = {}) {
   if (!root) return;
   if (!items.length) {
-    root.innerHTML = showEmptyMessage ? '<p class="empty">No items match your filters right now.</p>' : '';
+    root.innerHTML = showEmptyMessage ? `<p class="empty">${emptyMessage}</p>` : '';
     return;
   }
 
@@ -390,10 +390,13 @@ function setupCatalog(items) {
       }
 
       const soldSectionAllowed = sectionConfig.key !== 'recently-sold' || ['All', 'Sold'].includes(state.filters.status);
-      const shouldShowSection = soldSectionAllowed && sectionItems.length > 0;
+      const shouldShowSection = sectionConfig.key === 'recently-sold' ? soldSectionAllowed : true;
 
       sectionEl.style.display = shouldShowSection ? '' : 'none';
-      renderGrid(shouldShowSection ? sectionItems : [], grid, { showEmptyMessage: false });
+      renderGrid(shouldShowSection ? sectionItems : [], grid, {
+        showEmptyMessage: shouldShowSection,
+        emptyMessage: 'No items here right now — check back soon.'
+      });
     });
   }
 
