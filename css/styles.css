@@ -329,19 +329,28 @@ select,
 
 .modal-close {
   position: absolute;
-  top: 0.65rem;
-  right: 0.65rem;
-  border: none;
-  background: #111;
+  top: 0.9rem;
+  right: 0.9rem;
+  z-index: 30;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(19, 19, 19, 0.68);
   color: #fff;
   border-radius: 999px;
-  width: 34px;
-  height: 34px;
-  font-size: 1.2rem;
+  width: 36px;
+  height: 36px;
+  font-size: 1.25rem;
+  line-height: 1;
   cursor: pointer;
 }
 
-.modal-content { padding: 1rem; }
+.modal-close:hover,
+.modal-close:focus-visible {
+  background: rgba(19, 19, 19, 0.84);
+  border-color: rgba(255, 255, 255, 0.95);
+  outline: none;
+}
+
+.modal-content { padding: 2.8rem 1rem 1rem; }
 
 .modal-gallery {
   display: grid;
