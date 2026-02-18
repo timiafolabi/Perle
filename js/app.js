@@ -121,7 +121,7 @@ function applyGlobalFilters(items, filters) {
   });
 }
 
-function renderGrid(items, root, { interactive = true, showEmptyMessage = true, emptyMessage = 'No items here right now — check back soon.' } = {}) {
+function renderGrid(items, root, { interactive = true, showEmptyMessage = true, emptyMessage = 'Nothing here right now — check back soon.' } = {}) {
   if (!root) return;
   if (!items.length) {
     root.innerHTML = showEmptyMessage ? `<p class="empty">${emptyMessage}</p>` : '';
@@ -155,17 +155,105 @@ function buildModal(items) {
   if (!modal || !content) return;
 
   let copyToastTimer = null;
+  let modalState = null;
 
-  function renderMainImage(imageSrc, title) {
-    return `<img id="modal-main-image" class="modal-main-image" src="${safeImage(imageSrc)}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}'" />`;
+  function updateMainImage(nextIndex) {
+    if (!modalState || !modalState.images.length) return;
+    const total = modalState.images.length;
+    const normalized = ((nextIndex % total) + total) % total;
+    modalState.currentIndex = normalized;
+
+    const main = document.getElementById('modal-main-image');
+    if (main) {
+      main.src = safeImage(modalState.images[normalized]);
+      main.alt = modalState.title;
+    }
+
+    content.querySelectorAll('.modal-thumb').forEach((node, index) => {
+      node.classList.toggle('active', index === normalized);
+    });
   }
 
-  function buildThumbnails(images, title) {
-    return images.map((src, index) => `
-      <button class="modal-thumb ${index === 0 ? 'active' : ''}" type="button" data-modal-thumb="${safeImage(src)}" aria-label="View image ${index + 1} for ${title}">
-        <img src="${safeImage(src)}" alt="${title} thumbnail ${index + 1}" loading="lazy" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}'" />
-      </button>
-    `).join('');
+  function navigateGallery(direction) {
+    if (!modalState || modalState.images.length < 2) return;
+    updateMainImage(modalState.currentIndex + direction);
+  }
+
+  function open(itemId) {
+    const item = items.find((x) => x.id === itemId);
+    if (!item) return;
+
+    const images = item.images && item.images.length ? item.images : [PLACEHOLDER_IMAGE];
+    const showArrows = images.length > 1;
+
+    modalState = {
+      itemId: item.id,
+      title: item.title,
+      images,
+      currentIndex: 0,
+      touchStartX: null,
+      touchStartY: null
+    };
+
+    content.innerHTML = `
+      <div class="modal-gallery">
+        <div class="modal-main-wrap" id="modal-main-wrap">
+          <img id="modal-main-image" class="modal-main-image" src="${safeImage(images[0])}" alt="${item.title}" loading="lazy" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}'" />
+          <button type="button" class="modal-nav-arrow prev" data-modal-nav="prev" aria-label="Previous photo" ${showArrows ? '' : 'hidden'}>‹</button>
+          <button type="button" class="modal-nav-arrow next" data-modal-nav="next" aria-label="Next photo" ${showArrows ? '' : 'hidden'}>›</button>
+        </div>
+        <div class="modal-thumbs">
+          ${images.map((src, index) => `
+            <button class="modal-thumb ${index === 0 ? 'active' : ''}" type="button" data-modal-index="${index}" aria-label="View image ${index + 1} for ${item.title}">
+              <img src="${safeImage(src)}" alt="${item.title} thumbnail ${index + 1}" loading="lazy" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}'" />
+            </button>
+          `).join('')}
+        </div>
+      </div>
+      <h2>${item.title}</h2>
+      ${isFeatured(item) ? '<p class="perle-pick-badge in-modal">🔥 Perle Pick</p>' : ''}
+      <div class="copy-id-row">
+        <p class="item-id">Item ID: ${item.id}</p>
+        <button type="button" class="copy-id-btn" data-copy-id="${item.id}">Copy Item ID</button>
+      </div>
+      <p id="copy-feedback" class="copy-feedback" aria-live="polite"></p>
+      <p><strong>${formatPrice(item.price)}</strong> • Size ${item.size} • Fits like ${item.fitsLike}</p>
+      <p>${statusBadge(item.status)} <span class="meta">Condition: ${item.condition}</span></p>
+      <p>${item.notes || 'No additional notes.'}</p>
+      <p class="meta">Listed ${formatDate(item.createdAt)}</p>
+      <p class="modal-callout">DM ${IG_HANDLE} with Item ID ${item.id} to reserve.</p>
+    `;
+
+    const mainWrap = document.getElementById('modal-main-wrap');
+    if (mainWrap) {
+      mainWrap.addEventListener('touchstart', (event) => {
+        const touch = event.changedTouches?.[0];
+        if (!touch || !modalState) return;
+        modalState.touchStartX = touch.clientX;
+        modalState.touchStartY = touch.clientY;
+      }, { passive: true });
+
+      mainWrap.addEventListener('touchend', (event) => {
+        const touch = event.changedTouches?.[0];
+        if (!touch || !modalState) return;
+
+        const diffX = touch.clientX - (modalState.touchStartX ?? touch.clientX);
+        const diffY = touch.clientY - (modalState.touchStartY ?? touch.clientY);
+        if (Math.abs(diffX) > 45 && Math.abs(diffX) > Math.abs(diffY)) {
+          if (diffX < 0) navigateGallery(1);
+          else navigateGallery(-1);
+        }
+      }, { passive: true });
+    }
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function close() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+    modalState = null;
   }
 
   async function copyItemId(itemId) {
@@ -199,67 +287,34 @@ function buildModal(items) {
     }, 1500);
   }
 
-  function open(itemId) {
-    const item = items.find((x) => x.id === itemId);
-    if (!item) return;
-
-    const images = item.images && item.images.length ? item.images : [PLACEHOLDER_IMAGE];
-
-    content.innerHTML = `
-      <div class="modal-gallery">
-        <div class="modal-main-wrap">
-          ${renderMainImage(images[0], item.title)}
-        </div>
-        <div class="modal-thumbs">
-          ${buildThumbnails(images, item.title)}
-        </div>
-      </div>
-      <h2>${item.title}</h2>
-      ${isFeatured(item) ? '<p class="perle-pick-badge in-modal">🔥 Perle Pick</p>' : ''}
-      <div class="copy-id-row">
-        <p class="item-id">Item ID: ${item.id}</p>
-        <button type="button" class="copy-id-btn" data-copy-id="${item.id}">Copy Item ID</button>
-      </div>
-      <p id="copy-feedback" class="copy-feedback" aria-live="polite"></p>
-      <p><strong>${formatPrice(item.price)}</strong> • Size ${item.size} • Fits like ${item.fitsLike}</p>
-      <p>${statusBadge(item.status)} <span class="meta">Condition: ${item.condition}</span></p>
-      <p>${item.notes || 'No additional notes.'}</p>
-      <p class="meta">Listed ${formatDate(item.createdAt)}</p>
-      <p class="modal-callout">DM ${IG_HANDLE} with Item ID ${item.id} to reserve.</p>
-    `;
-
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function close() {
-    modal.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
   document.addEventListener('click', async (e) => {
     const card = e.target.closest('.card[data-id]');
-    if (card) open(card.dataset.id);
+    if (card) {
+      open(card.dataset.id);
+      return;
+    }
 
-    const thumb = e.target.closest('.modal-thumb[data-modal-thumb]');
-    if (thumb) {
-      const nextSrc = thumb.dataset.modalThumb;
-      const main = document.getElementById('modal-main-image');
-      if (main) {
-        main.src = safeImage(nextSrc);
-      }
-      content.querySelectorAll('.modal-thumb').forEach((node) => node.classList.remove('active'));
-      thumb.classList.add('active');
+    const thumb = e.target.closest('.modal-thumb[data-modal-index]');
+    if (thumb && modal.classList.contains('open')) {
+      updateMainImage(Number(thumb.dataset.modalIndex));
+      return;
+    }
+
+    const navArrow = e.target.closest('.modal-nav-arrow[data-modal-nav]');
+    if (navArrow && modal.classList.contains('open')) {
+      navigateGallery(navArrow.dataset.modalNav === 'next' ? 1 : -1);
+      return;
     }
 
     const copyBtn = e.target.closest('.copy-id-btn[data-copy-id]');
-    if (copyBtn) {
+    if (copyBtn && modal.classList.contains('open')) {
       try {
         await copyItemId(copyBtn.dataset.copyId);
         showCopyFeedback();
       } catch (error) {
         console.error('Copy failed', error);
       }
+      return;
     }
 
     if (e.target.matches('#modal-close') || e.target.matches('#item-modal')) {
@@ -268,28 +323,72 @@ function buildModal(items) {
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') close();
+    if (!modal.classList.contains('open')) return;
+
+    if (e.key === 'Escape') {
+      close();
+      return;
+    }
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      navigateGallery(-1);
+      return;
+    }
+
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      navigateGallery(1);
+    }
   });
 }
 
-
-function setupSmoothJumpLinks() {
-  const jumpLinks = document.querySelectorAll('.jump-links a[href^="#"]');
-  if (!jumpLinks.length) return;
+function setupCatalogJumpLinks() {
+  const root = document.querySelector('.jump-links');
+  if (!root) return;
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  jumpLinks.forEach((link) => {
-    link.addEventListener('click', (e) => {
-      const targetId = link.getAttribute('href');
-      const target = targetId ? document.querySelector(targetId) : null;
-      if (!target) return;
+  const getStickyOffset = () => {
+    const sticky = document.querySelector('.sticky-filters');
+    const siteHeader = document.querySelector('.site-header');
+    const stickyHeight = sticky ? sticky.getBoundingClientRect().height : 0;
+    const headerHeight = siteHeader ? siteHeader.getBoundingClientRect().height : 0;
+    return stickyHeight + headerHeight + 14;
+  };
 
-      e.preventDefault();
-      target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
-      history.replaceState(null, '', targetId);
+  function scrollToHash(hash) {
+    if (!hash || hash === '#') return;
+    const target = document.querySelector(hash);
+    if (!target) return;
+
+    const absoluteTop = window.scrollY + target.getBoundingClientRect().top;
+    const offsetTop = Math.max(0, absoluteTop - getStickyOffset());
+
+    window.scrollTo({
+      top: offsetTop,
+      behavior: prefersReducedMotion ? 'auto' : 'smooth'
     });
+  }
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href^="#"]');
+    if (!link || !root.contains(link)) return;
+
+    const hash = link.getAttribute('href');
+    const target = hash ? document.querySelector(hash) : null;
+    if (!target) return;
+
+    e.preventDefault();
+    scrollToHash(hash);
+    history.replaceState(null, '', hash);
   });
+
+  if (window.location.hash) {
+    setTimeout(() => {
+      scrollToHash(window.location.hash);
+    }, 40);
+  }
 }
 
 function setupConditionGuide() {
@@ -319,30 +418,6 @@ function setupConditionGuide() {
   });
 }
 
-function setupEmailCapture() {
-  const form = document.getElementById('email-capture-form');
-  const emailInput = document.getElementById('notify-email');
-  const errorNode = document.getElementById('email-capture-error');
-  if (!form || !emailInput || !errorNode) return;
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = (emailInput.value || '').trim();
-    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-    if (!isValid) {
-      errorNode.textContent = 'Please enter a valid email address.';
-      emailInput.focus();
-      return;
-    }
-
-    errorNode.textContent = '';
-    const subject = encodeURIComponent('Perle — New Finds Notifications');
-    const body = encodeURIComponent(`Please add me to Perle notifications. My email: ${email}`);
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
-  });
-}
-
 function setLastUpdated() {
   const node = document.getElementById('last-updated');
   if (!node) return;
@@ -358,7 +433,7 @@ function setupCatalog(items) {
   if (!status || !size || !sort || !search) return;
 
   setLastUpdated();
-  setupSmoothJumpLinks();
+  setupCatalogJumpLinks();
   setupConditionGuide();
 
   const sizes = [...new Set(items.map((x) => x.size).filter(Boolean))].sort();
@@ -390,12 +465,10 @@ function setupCatalog(items) {
       }
 
       const soldSectionAllowed = sectionConfig.key !== 'recently-sold' || ['All', 'Sold'].includes(state.filters.status);
-      const shouldShowSection = sectionConfig.key === 'recently-sold' ? soldSectionAllowed : true;
-
-      sectionEl.style.display = shouldShowSection ? '' : 'none';
-      renderGrid(shouldShowSection ? sectionItems : [], grid, {
-        showEmptyMessage: shouldShowSection,
-        emptyMessage: 'No items here right now — check back soon.'
+      sectionEl.style.display = soldSectionAllowed ? '' : 'none';
+      renderGrid(soldSectionAllowed ? sectionItems : [], grid, {
+        showEmptyMessage: soldSectionAllowed,
+        emptyMessage: 'Nothing here right now — check back soon.'
       });
     });
   }
@@ -438,7 +511,7 @@ function parseCsv(text) {
       continue;
     }
 
-    if ((ch === ',' ) && !inQuotes) {
+    if ((ch === ',') && !inQuotes) {
       row.push(cell);
       cell = '';
       continue;
@@ -515,7 +588,6 @@ async function loadItems() {
     state.items = items;
     setupHome(items);
     setupCatalog(items);
-    setupEmailCapture();
   } catch (err) {
     const arrivalsNode = document.getElementById('arrivals-grid');
     if (arrivalsNode) arrivalsNode.innerHTML = '<p class="empty">Unable to load inventory right now.</p>';
