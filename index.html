@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perle Thrifted Goods</title>
+  <link rel="icon" href="assets/logo.jpeg" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="./index.html"><img src="assets/logo.jpeg" alt="Perle logo" onerror="this.onerror=null;this.src='assets/items/placeholder.jpg'" /><span>Perle Thrifted Goods</span></a>
+      <nav>
+        <ul>
+          <li><a class="active" href="./index.html">Home</a></li>
+          <li><a href="./catalog.html">Catalog</a></li>
+          <li><a href="./about.html">About</a></li>
+          <li><a href="./info.html">Info</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-card">
+        <h1>Streetwise thrift. Curated one-of-one pieces.</h1>
+        <p>Fresh thrift finds, carefully curated and always one-of-one. Catch drops early and reserve fast.</p>
+        <a class="btn" href="./catalog.html">Shop the Catalog</a>
+      </div>
+    </section>
+
+
+    <section class="container">
+      <h2 class="section-title">New Arrivals</h2>
+      <div id="arrivals-grid" class="grid"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">Follow on Instagram <strong>@perlethriftedgoods</strong> • One-of-one curated thrift • No checkout</div>
+  </footer>
+
+  <div id="item-modal" class="modal" aria-hidden="true">
+    <div class="modal-panel">
+      <button id="modal-close" class="modal-close" aria-label="Close">×</button>
+      <div id="modal-content" class="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="./js/app.js"></script>
+</body>
+</html>
