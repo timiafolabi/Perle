@@ -1,0 +1,130 @@
+[
+  {
+    "id": "PTG-0001",
+    "title": "Carhartt Work Jacket",
+    "category": "Outerwear",
+    "price": 45,
+    "size": "L",
+    "fitsLike": "L",
+    "condition": "Good",
+    "status": "available",
+    "notes": "Light fading on cuffs",
+    "images": [
+      "/assets/items/ptg-0001-1.jpg",
+      "/assets/items/ptg-0001-2.jpg"
+    ],
+    "createdAt": "2026-02-15T00:00:00Z"
+  },
+  {
+    "id": "PTG-0002",
+    "title": "Nike Embroidered Hoodie",
+    "category": "Tops",
+    "price": 35,
+    "size": "M",
+    "fitsLike": "M",
+    "condition": "Very Good",
+    "status": "reserved",
+    "notes": "Soft fleece interior, clean embroidery.",
+    "images": [
+      "/assets/items/ptg-0002-1.jpg",
+      "/assets/items/ptg-0002-2.jpg"
+    ],
+    "createdAt": "2026-02-16T10:00:00Z"
+  },
+  {
+    "id": "PTG-0003",
+    "title": "Levi's 501 Denim",
+    "category": "Bottoms",
+    "price": 38,
+    "size": "32",
+    "fitsLike": "31-32",
+    "condition": "Good",
+    "status": "available",
+    "notes": "Classic straight fit with natural fade.",
+    "images": [
+      "/assets/items/ptg-0003-1.jpg",
+      "/assets/items/ptg-0003-2.jpg"
+    ],
+    "createdAt": "2026-02-17T09:30:00Z"
+  },
+  {
+    "id": "PTG-0004",
+    "title": "Vintage Windbreaker",
+    "category": "Outerwear",
+    "price": 30,
+    "size": "XL",
+    "fitsLike": "L-XL",
+    "condition": "Good",
+    "status": "sold",
+    "notes": "Bright color blocking, small mark on sleeve.",
+    "images": [
+      "/assets/items/ptg-0004-1.jpg",
+      "/assets/items/ptg-0004-2.jpg"
+    ],
+    "createdAt": "2026-02-14T14:45:00Z"
+  },
+  {
+    "id": "PTG-0005",
+    "title": "Dickies Double-Knee Pants",
+    "category": "Bottoms",
+    "price": 40,
+    "size": "34",
+    "fitsLike": "34",
+    "condition": "Very Good",
+    "status": "available",
+    "notes": "Durable workwear staple.",
+    "images": [
+      "/assets/items/ptg-0005-1.jpg",
+      "/assets/items/ptg-0005-2.jpg"
+    ],
+    "createdAt": "2026-02-18T08:15:00Z"
+  },
+  {
+    "id": "PTG-0006",
+    "title": "Corduroy Snapback",
+    "category": "Accessories",
+    "price": 22,
+    "size": "OS",
+    "fitsLike": "OS",
+    "condition": "Excellent",
+    "status": "available",
+    "notes": "Adjustable strap, no flaws.",
+    "images": [
+      "/assets/items/ptg-0006-1.jpg",
+      "/assets/items/ptg-0006-2.jpg"
+    ],
+    "createdAt": "2026-02-18T10:00:00Z"
+  },
+  {
+    "id": "PTG-0007",
+    "title": "Graphic Tee Bundle Piece",
+    "category": "Under $40",
+    "price": 25,
+    "size": "S",
+    "fitsLike": "S-M",
+    "condition": "Good",
+    "status": "available",
+    "notes": "Soft vintage cotton feel.",
+    "images": [
+      "/assets/items/ptg-0007-1.jpg",
+      "/assets/items/ptg-0007-2.jpg"
+    ],
+    "createdAt": "2026-02-13T12:00:00Z"
+  },
+  {
+    "id": "PTG-0008",
+    "title": "Wool Blend Overcoat",
+    "category": "Outerwear",
+    "price": 65,
+    "size": "M",
+    "fitsLike": "M",
+    "condition": "Very Good",
+    "status": "available",
+    "notes": "Tailored drape, ideal layering piece.",
+    "images": [
+      "/assets/items/ptg-0008-1.jpg",
+      "/assets/items/ptg-0008-2.jpg"
+    ],
+    "createdAt": "2026-02-19T07:00:00Z"
+  }
+]
