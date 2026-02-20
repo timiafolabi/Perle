@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>About | Perle Thrifted Goods</title>
+  <title>Recently Sold | Perle Thrifted Goods</title>
   <link rel="icon" href="assets/logo.jpeg" />
   <link rel="stylesheet" href="./css/styles.css" />
 </head>
@@ -15,8 +15,8 @@
         <ul>
           <li><a href="./index.html">Home</a></li>
           <li><a href="./catalog.html">Catalog</a></li>
-          <li><a href="./recently-sold.html">Recently Sold</a></li>
-          <li><a class="active" href="./about.html">About</a></li>
+          <li><a class="active" href="./recently-sold.html">Recently Sold</a></li>
+          <li><a href="./about.html">About</a></li>
           <li><a href="./info.html">Info</a></li>
           <li><a href="./cart.html" class="cart-link">Cart <span id="cart-count" class="cart-count">0</span></a></li>
         </ul>
@@ -25,16 +25,24 @@
   </header>
 
   <main class="container">
-    <section class="content-card">
-      <h1>About Perle Thrifted Goods</h1>
-      <p>Created in 2024 by Daniel, David, and Timi.</p>
-      <p>Perle Thrifted Goods is built around streetwear and affordable finds that actually look good. We hand-pick every piece so you can stay fly without paying crazy prices. Everything is one-of-one—when it’s gone, it’s gone—so if you see something you like, grab it.</p>
-      <p>We keep it simple: no mass inventory, no duplicates, no checkout noise. Find your piece, then DM <strong>@perlethriftedgoods</strong> to lock it in.</p>
+    <h1>Recently Sold</h1>
+    <p class="section-subtitle">Gone for now — more heat coming soon.</p>
+    <section class="catalog-section">
+      <div class="grid dense-grid" id="sold-grid"></div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <div class="container">© Perle Thrifted Goods • One-of-one curated thrift</div>
+    <div class="container">Follow on Instagram <strong>@perlethriftedgoods</strong> • One-of-one curated thrift</div>
   </footer>
+
+  <div id="item-modal" class="modal" aria-hidden="true">
+    <div class="modal-panel">
+      <button id="modal-close" class="modal-close" aria-label="Close">×</button>
+      <div id="modal-content" class="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="./js/app.js"></script>
 </body>
 </html>
