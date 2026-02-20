@@ -12,6 +12,7 @@ const REQUIRED_FIELDS = ['id', 'title', 'category', 'price', 'size', 'fitsLike',
 const state = {
   items: [],
   waistOptions: [],
+  isDesktopFiltersOpen: false,
   filters: {
     audience: 'all',
     category: 'all',
@@ -574,7 +575,27 @@ function setupCatalog(items) {
   const openDrawerBtn = document.getElementById('open-filter-drawer');
   const closeDrawerBtn = document.getElementById('filter-drawer-close');
   const clearFiltersBtn = document.getElementById('clear-filters');
+  const desktopClearFiltersBtn = document.getElementById('desktop-clear-filters');
   const applyFiltersBtn = document.getElementById('apply-filters');
+  const desktopFiltersPanel = document.querySelector('.desktop-filter-panel');
+  const desktopFiltersToggle = document.getElementById('desktop-filters-toggle');
+  const desktopQuery = window.matchMedia('(min-width: 900px)');
+
+  const setDesktopFilterPanelState = () => {
+    if (!desktopFiltersPanel || !desktopFiltersToggle) return;
+    const enableDesktopCollapse = desktopQuery.matches;
+
+    if (!enableDesktopCollapse) {
+      desktopFiltersPanel.classList.remove('is-collapsed');
+      desktopFiltersToggle.setAttribute('aria-expanded', 'true');
+      desktopFiltersToggle.textContent = 'Show more filters';
+      return;
+    }
+
+    desktopFiltersPanel.classList.toggle('is-collapsed', !state.isDesktopFiltersOpen);
+    desktopFiltersToggle.setAttribute('aria-expanded', String(state.isDesktopFiltersOpen));
+    desktopFiltersToggle.textContent = state.isDesktopFiltersOpen ? 'Hide extra filters' : 'Show more filters';
+  };
 
   const closeDrawer = () => {
     if (!drawer) return;
@@ -609,6 +630,30 @@ function setupCatalog(items) {
     renderAllFilterUIs(rerender);
     rerender();
   });
+
+  desktopClearFiltersBtn?.addEventListener('click', () => {
+    state.filters = {
+      ...state.filters,
+      audience: 'all',
+      category: 'all',
+      condition: 'all',
+      newOnly: false,
+      letterSizes: [],
+      waistSizes: []
+    };
+    renderAllFilterUIs(rerender);
+    rerender();
+  });
+
+  desktopFiltersToggle?.addEventListener('click', () => {
+    if (!desktopQuery.matches) return;
+    state.isDesktopFiltersOpen = !state.isDesktopFiltersOpen;
+    setDesktopFilterPanelState();
+  });
+
+  desktopQuery.addEventListener('change', setDesktopFilterPanelState);
+
+  setDesktopFilterPanelState();
 
   rerender();
 }

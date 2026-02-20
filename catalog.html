@@ -39,11 +39,12 @@
     </div>
 
     <section class="sticky-filters compact-filters desktop-filter-panel" aria-label="Catalog filters desktop">
+      <div class="desktop-filter-header">
+        <strong>Filters</strong>
+        <button id="desktop-filters-toggle" class="copy-id-btn" type="button" aria-expanded="false">Show more filters</button>
+      </div>
       <div class="chip-row" id="audience-tabs"></div>
       <div class="chip-row" id="category-chips"></div>
-      <div class="chip-row" id="condition-chips"></div>
-      <div class="chip-row" id="letter-size-chips"></div>
-      <div class="chip-row" id="waist-size-chips-wrap"></div>
       <div class="chip-row filter-row-bottom">
         <label class="inline-toggle"><input type="checkbox" id="new-arrivals-only" /> New Arrivals</label>
         <select id="sort-filter" aria-label="Sort">
@@ -53,6 +54,15 @@
         </select>
       </div>
       <input id="search-filter" type="search" placeholder="Search title + notes" aria-label="Search by title or notes" />
+
+      <div id="desktop-advanced-filters" class="desktop-advanced-filters">
+        <div class="chip-row" id="condition-chips"></div>
+        <div class="chip-row" id="letter-size-chips"></div>
+        <div class="chip-row" id="waist-size-chips-wrap"></div>
+        <div class="desktop-clear-row">
+          <button id="desktop-clear-filters" class="copy-id-btn clear-cart-btn" type="button">Clear filters</button>
+        </div>
+      </div>
     </section>
 
     <div id="active-filter-summary" class="chip-row active-filter-summary"></div>

@@ -822,6 +822,33 @@ select,
   display: grid;
 }
 
+.desktop-filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.desktop-advanced-filters {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.desktop-clear-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (min-width: 900px) {
+  .desktop-filter-panel {
+    overflow: hidden;
+  }
+
+  .desktop-filter-panel.is-collapsed .desktop-advanced-filters {
+    display: none;
+  }
+}
+
 .active-filter-summary {
   margin: 0.4rem 0 0.85rem;
 }
