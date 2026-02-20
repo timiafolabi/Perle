@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cart | Perle Thrifted Goods</title>
+  <link rel="icon" href="assets/logo.jpeg" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="./index.html"><img src="assets/logo.jpeg" alt="Perle logo" onerror="this.onerror=null;this.src='assets/items/placeholder.jpg'" /><span>Perle Thrifted Goods</span></a>
+      <nav>
+        <ul>
+          <li><a href="./index.html">Home</a></li>
+          <li><a href="./catalog.html">Catalog</a></li>
+          <li><a href="./recently-sold.html">Recently Sold</a></li>
+          <li class="cart-nav-item"><a class="active cart-link" href="./cart.html"><span class="cart-icon" aria-hidden="true">🛒</span> Cart <span id="cart-count" class="cart-count">0</span></a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1>Your Cart</h1>
+    <p class="section-subtitle">Copy the share link and DM us on social media about your inquiry.</p>
+    <div class="cart-actions">
+      <button id="share-cart-link" class="copy-id-btn" type="button">Share Cart</button>
+      <button id="clear-cart" class="copy-id-btn clear-cart-btn" type="button">Clear Cart</button>
+      <p id="cart-feedback" class="copy-feedback" aria-live="polite"></p>
+    </div>
+    <div id="cart-list" class="cart-list"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">Follow on Instagram <strong>@perlethriftedgoods</strong> • One-of-one curated thrift</div>
+  </footer>
+
+  <script src="./js/app.js"></script>
+</body>
+</html>
