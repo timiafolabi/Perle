@@ -28,10 +28,22 @@
     <h1>Catalog</h1>
     <p class="note">All pieces are one-of-one and curated for fast browsing. DM @perlethriftedgoods with Item ID to reserve.</p>
 
-    <div class="sticky-filters compact-filters" aria-label="Catalog filters">
+    <div class="mobile-filter-bar sticky-filters" aria-label="Mobile filter quick bar">
+      <input id="search-filter-mobile" type="search" placeholder="Search title + notes" aria-label="Search by title or notes" />
+      <select id="sort-filter-mobile" aria-label="Sort">
+        <option value="Newest">Newest</option>
+        <option value="Price Low→High">Price low-high</option>
+        <option value="Price High→Low">Price high-low</option>
+      </select>
+      <button id="open-filter-drawer" class="chip active" type="button">Filter <span id="active-filter-count">0</span></button>
+    </div>
+
+    <section class="sticky-filters compact-filters desktop-filter-panel" aria-label="Catalog filters desktop">
       <div class="chip-row" id="audience-tabs"></div>
       <div class="chip-row" id="category-chips"></div>
       <div class="chip-row" id="condition-chips"></div>
+      <div class="chip-row" id="letter-size-chips"></div>
+      <div class="chip-row" id="waist-size-chips-wrap"></div>
       <div class="chip-row filter-row-bottom">
         <label class="inline-toggle"><input type="checkbox" id="new-arrivals-only" /> New Arrivals</label>
         <select id="sort-filter" aria-label="Sort">
@@ -41,7 +53,9 @@
         </select>
       </div>
       <input id="search-filter" type="search" placeholder="Search title + notes" aria-label="Search by title or notes" />
-    </div>
+    </section>
+
+    <div id="active-filter-summary" class="chip-row active-filter-summary"></div>
 
     <section class="catalog-section">
       <div class="grid dense-grid" id="catalog-grid"></div>
@@ -51,6 +65,38 @@
   <footer class="site-footer">
     <div class="container">Follow on Instagram <strong>@perlethriftedgoods</strong> • One-of-one curated thrift</div>
   </footer>
+
+  <div id="filter-drawer" class="modal" aria-hidden="true">
+    <div class="modal-panel filter-drawer-panel">
+      <button id="filter-drawer-close" class="modal-close" aria-label="Close">×</button>
+      <div class="modal-content">
+        <h2>Filters</h2>
+        <p class="section-subtitle">Audience</p>
+        <div class="chip-row" id="drawer-audience-tabs"></div>
+
+        <p class="section-subtitle">Category</p>
+        <div class="chip-row" id="drawer-category-chips"></div>
+
+        <p class="section-subtitle">Condition</p>
+        <div class="chip-row" id="drawer-condition-chips"></div>
+
+        <p class="section-subtitle">Letter sizes</p>
+        <div class="chip-row" id="drawer-letter-size-chips"></div>
+
+        <div id="drawer-waist-section">
+          <p class="section-subtitle">Waist sizes</p>
+          <div class="chip-row" id="drawer-waist-size-chips-wrap"></div>
+        </div>
+
+        <label class="inline-toggle"><input type="checkbox" id="drawer-new-arrivals-only" /> New Arrivals</label>
+
+        <div class="cart-actions" style="margin-top: 0.75rem;">
+          <button id="apply-filters" class="copy-id-btn" type="button">Apply</button>
+          <button id="clear-filters" class="copy-id-btn clear-cart-btn" type="button">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div id="item-modal" class="modal" aria-hidden="true">
     <div class="modal-panel">

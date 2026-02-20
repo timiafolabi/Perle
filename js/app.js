@@ -5,21 +5,24 @@ const VALID_STATUSES = ['available', 'reserved', 'sold'];
 const VALID_CONDITIONS = ['New', 'Very Good', 'Good', 'Fair'];
 const VALID_CATEGORIES = ['Tops', 'Bottoms', 'Outerwear'];
 const VALID_AUDIENCES = ['mens', 'womens', 'unisex'];
+const LETTER_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
-const REQUIRED_FIELDS = [
-  'id', 'title', 'category', 'price', 'size', 'fitsLike', 'condition', 'status', 'notes', 'images', 'createdAt', 'featured', 'audience'
-];
+const REQUIRED_FIELDS = ['id', 'title', 'category', 'price', 'size', 'fitsLike', 'condition', 'status', 'notes', 'images', 'createdAt', 'featured', 'audience'];
 
 const state = {
   items: [],
+  waistOptions: [],
   filters: {
     audience: 'all',
     category: 'all',
     condition: 'all',
     sort: 'Newest',
     search: '',
-    newOnly: false
-  }
+    newOnly: false,
+    letterSizes: [],
+    waistSizes: []
+  },
+  draftFilters: null
 };
 
 const formatPrice = (price) => `$${Number(price).toFixed(0)}`;
@@ -41,6 +44,54 @@ function normalizeCategory(input) {
   return input;
 }
 
+function normalizeLetterSizes(str) {
+  if (!str) return [];
+  const clean = String(str).toUpperCase().replace(/XX-LARGE/g, 'XXL').replace(/X-LARGE/g, 'XL').replace(/\s+/g, '');
+  return [...new Set(clean.split(/[\/,|-]/).map((token) => {
+    if (token === '2XL') return 'XXL';
+    if (token === '3XL') return 'XXXL';
+    return token;
+  }).filter((token) => LETTER_OPTIONS.includes(token)))];
+}
+
+function normalizeWaistSizes(str) {
+  if (!str) return [];
+  const text = String(str);
+  const values = new Set();
+
+  text.split('/').forEach((chunk) => {
+    const part = chunk.trim();
+    const range = part.match(/(\d{2})\s*-\s*(\d{2})/);
+    if (range) {
+      const start = Number(range[1]);
+      const end = Number(range[2]);
+      const min = Math.min(start, end);
+      const max = Math.max(start, end);
+      if (max - min <= 6) {
+        for (let n = min; n <= max; n += 1) values.add(n);
+      } else {
+        values.add(start);
+        values.add(end);
+      }
+      return;
+    }
+
+    const nums = part.match(/\d{2}/g);
+    if (nums) nums.forEach((n) => values.add(Number(n)));
+  });
+
+  return [...values];
+}
+
+function getAllWaistOptions(items) {
+  const values = new Set();
+  items.forEach((item) => {
+    normalizeWaistSizes(item.size).forEach((n) => values.add(n));
+    normalizeWaistSizes(item.fitsLike).forEach((n) => values.add(n));
+  });
+  return [...values].sort((a, b) => a - b);
+}
+
 function safeImage(src) {
   return src || PLACEHOLDER_IMAGE;
 }
@@ -56,6 +107,10 @@ function getCartIds() {
   } catch {
     return [];
   }
+}
+
+function isInCart(id) {
+  return getCartIds().includes(id);
 }
 
 function setCartIds(ids) {
@@ -81,6 +136,11 @@ function removeFromCart(id) {
   setCartIds(getCartIds().filter((itemId) => itemId !== id));
 }
 
+function toggleCart(id) {
+  if (isInCart(id)) removeFromCart(id);
+  else addToCart(id);
+}
+
 function validateItems(items) {
   const idCounts = new Map();
 
@@ -94,25 +154,11 @@ function validateItems(items) {
       }
     });
 
-    if (!VALID_STATUSES.includes(item.status)) {
-      console.warn(`[inventory validation] Invalid status on ${label}: ${item.status}`);
-    }
-
-    if (!VALID_CONDITIONS.includes(item.condition)) {
-      console.warn(`[inventory validation] Invalid condition on ${label}: ${item.condition}. Must be one of ${VALID_CONDITIONS.join(', ')}`);
-    }
-
-    if (!VALID_CATEGORIES.includes(item.category)) {
-      console.warn(`[inventory validation] Invalid category on ${label}: ${item.category}. Must be one of ${VALID_CATEGORIES.join(', ')}`);
-    }
-
-    if (!VALID_AUDIENCES.includes(item.audience)) {
-      console.warn(`[inventory validation] Invalid audience on ${label}: ${item.audience}. Must be mens/womens/unisex`);
-    }
-
-    if (typeof item.price !== 'number' || Number.isNaN(item.price)) {
-      console.warn(`[inventory validation] Price must be numeric on ${label}`);
-    }
+    if (!VALID_STATUSES.includes(item.status)) console.warn(`[inventory validation] Invalid status on ${label}: ${item.status}`);
+    if (!VALID_CONDITIONS.includes(item.condition)) console.warn(`[inventory validation] Invalid condition on ${label}: ${item.condition}`);
+    if (!VALID_CATEGORIES.includes(item.category)) console.warn(`[inventory validation] Invalid category on ${label}: ${item.category}`);
+    if (!VALID_AUDIENCES.includes(item.audience)) console.warn(`[inventory validation] Invalid audience on ${label}: ${item.audience}`);
+    if (typeof item.price !== 'number' || Number.isNaN(item.price)) console.warn(`[inventory validation] Price must be numeric on ${label}`);
 
     idCounts.set(item.id, (idCounts.get(item.id) || 0) + 1);
   });
@@ -130,6 +176,10 @@ function sortItems(items, sort) {
   return list;
 }
 
+function intersects(a, b) {
+  return a.some((token) => b.includes(token));
+}
+
 function applyCatalogFilters(items) {
   const search = state.filters.search.trim().toLowerCase();
 
@@ -139,6 +189,17 @@ function applyCatalogFilters(items) {
     if (state.filters.category !== 'all' && item.category !== state.filters.category) return false;
     if (state.filters.condition !== 'all' && item.condition !== state.filters.condition) return false;
     if (state.filters.newOnly && !isNewArrival(item)) return false;
+
+    const selectedLetters = state.filters.letterSizes;
+    const selectedWaists = state.filters.waistSizes;
+
+    if (selectedLetters.length || selectedWaists.length) {
+      const itemLetters = [...new Set([...normalizeLetterSizes(item.size), ...normalizeLetterSizes(item.fitsLike)])];
+      const itemWaists = [...new Set([...normalizeWaistSizes(item.size), ...normalizeWaistSizes(item.fitsLike)])];
+      const letterHit = selectedLetters.length ? intersects(itemLetters, selectedLetters) : false;
+      const waistHit = selectedWaists.length ? intersects(itemWaists, selectedWaists) : false;
+      if (!(letterHit || waistHit)) return false;
+    }
 
     if (search) {
       const hay = `${item.title} ${item.notes}`.toLowerCase();
@@ -150,9 +211,7 @@ function applyCatalogFilters(items) {
 }
 
 function sizeLine(item, { womensLabel = false } = {}) {
-  if (womensLabel && item.audience === 'womens') {
-    return `Women's size ${item.size} • Fits like ${item.fitsLike}`;
-  }
+  if (womensLabel && item.audience === 'womens') return `Women's size ${item.size} • Fits like ${item.fitsLike}`;
   return `Size ${item.size} • Fits like ${item.fitsLike}`;
 }
 
@@ -188,6 +247,7 @@ function buildModal(items) {
 
   let gallery = null;
   let timer = null;
+  let currentItem = null;
 
   const updateImage = (index) => {
     if (!gallery) return;
@@ -203,9 +263,18 @@ function buildModal(items) {
     updateImage(gallery.index + dir);
   };
 
+  const renderCartToggle = (item) => {
+    if (item.status === 'sold') {
+      return '<button type="button" class="modal-cart-btn" disabled>Sold</button>';
+    }
+    const inCart = isInCart(item.id);
+    return `<button type="button" class="modal-cart-btn" data-modal-cart-toggle="${item.id}">${inCart ? 'Remove from Cart' : 'Add to Cart'}</button>`;
+  };
+
   const open = (itemId) => {
     const item = items.find((x) => x.id === itemId);
     if (!item) return;
+    currentItem = item;
     const images = item.images.length ? item.images : [PLACEHOLDER_IMAGE];
 
     gallery = { images, index: 0, touchX: null, touchY: null };
@@ -224,6 +293,7 @@ function buildModal(items) {
         <p class="item-id">Item ID: ${item.id}</p>
         <button type="button" class="copy-id-btn" data-copy-id="${item.id}">Copy Item ID</button>
       </div>
+      ${renderCartToggle(item)}
       <p id="copy-feedback" class="copy-feedback" aria-live="polite"></p>
       <p><strong>${formatPrice(item.price)}</strong> • ${sizeLine(item, { womensLabel: true })}</p>
       <p>${statusBadge(item.status)} <span class="meta">Condition: ${item.condition}</span></p>
@@ -258,6 +328,7 @@ function buildModal(items) {
     modal.classList.remove('open');
     document.body.style.overflow = '';
     gallery = null;
+    currentItem = null;
   };
 
   const copyText = async (value) => {
@@ -284,7 +355,7 @@ function buildModal(items) {
     if (nav && modal.classList.contains('open')) return stepImage(nav.dataset.modalNav === 'next' ? 1 : -1);
 
     const copyBtn = event.target.closest('.copy-id-btn');
-    if (copyBtn && modal.classList.contains('open')) {
+    if (copyBtn && modal.classList.contains('open') && copyBtn.dataset.copyId) {
       await copyText(copyBtn.dataset.copyId);
       const feedback = document.getElementById('copy-feedback');
       if (feedback) {
@@ -296,6 +367,13 @@ function buildModal(items) {
           feedback.classList.remove('show');
         }, 1500);
       }
+      return;
+    }
+
+    const modalCart = event.target.closest('[data-modal-cart-toggle]');
+    if (modalCart && currentItem && currentItem.status !== 'sold') {
+      toggleCart(currentItem.id);
+      modalCart.textContent = isInCart(currentItem.id) ? 'Remove from Cart' : 'Add to Cart';
       return;
     }
 
@@ -322,71 +400,213 @@ function buildModal(items) {
   });
 }
 
-function renderFilterChips(rootId, options, current, onSelect) {
+function renderFilterChips(rootId, options, current, onSelect, { multi = false } = {}) {
   const root = document.getElementById(rootId);
   if (!root) return;
-  root.innerHTML = options.map((opt) => `
-    <button class="chip ${current === opt.value ? 'active' : ''}" type="button" data-chip-value="${opt.value}">${opt.label}</button>
-  `).join('');
+  root.innerHTML = options.map((opt) => {
+    const isActive = multi ? current.includes(opt.value) : current === opt.value;
+    return `<button class="chip ${isActive ? 'active' : ''}" type="button" data-chip-value="${opt.value}">${opt.label}</button>`;
+  }).join('');
+
   root.querySelectorAll('.chip').forEach((chip) => {
     chip.addEventListener('click', () => onSelect(chip.dataset.chipValue));
   });
 }
 
-function setupCatalog(items) {
-  const grid = document.getElementById('catalog-grid');
-  if (!grid) return;
+function activeFilterCount(filters) {
+  let count = 0;
+  ['audience', 'category', 'condition'].forEach((key) => {
+    if (filters[key] !== 'all') count += 1;
+  });
+  if (filters.newOnly) count += 1;
+  count += filters.letterSizes.length;
+  count += filters.waistSizes.length;
+  return count;
+}
 
-  const sort = document.getElementById('sort-filter');
-  const search = document.getElementById('search-filter');
-  const newOnly = document.getElementById('new-arrivals-only');
+function setMobileSyncFromState() {
+  const searchMobile = document.getElementById('search-filter-mobile');
+  const sortMobile = document.getElementById('sort-filter-mobile');
+  const searchDesktop = document.getElementById('search-filter');
+  const sortDesktop = document.getElementById('sort-filter');
 
-  const rerender = () => {
-    renderFilterChips('audience-tabs', [
+  if (searchMobile) searchMobile.value = state.filters.search;
+  if (sortMobile) sortMobile.value = state.filters.sort;
+  if (searchDesktop) searchDesktop.value = state.filters.search;
+  if (sortDesktop) sortDesktop.value = state.filters.sort;
+
+  const newDesktop = document.getElementById('new-arrivals-only');
+  const newDrawer = document.getElementById('drawer-new-arrivals-only');
+  if (newDesktop) newDesktop.checked = state.filters.newOnly;
+  if (newDrawer) newDrawer.checked = state.filters.newOnly;
+
+  const countNode = document.getElementById('active-filter-count');
+  if (countNode) countNode.textContent = String(activeFilterCount(state.filters));
+}
+
+function renderFilterSummary() {
+  const root = document.getElementById('active-filter-summary');
+  if (!root) return;
+
+  const tokens = [];
+  if (state.filters.audience !== 'all') tokens.push(state.filters.audience);
+  if (state.filters.category !== 'all') tokens.push(state.filters.category);
+  if (state.filters.condition !== 'all') tokens.push(state.filters.condition);
+  if (state.filters.newOnly) tokens.push('New Arrivals');
+  tokens.push(...state.filters.letterSizes);
+  tokens.push(...state.filters.waistSizes.map(String));
+
+  root.innerHTML = tokens.map((token) => `<span class="chip active">${token}</span>`).join('');
+  root.style.display = tokens.length ? 'flex' : 'none';
+}
+
+function renderAllFilterUIs(rerender) {
+  const targets = [
+    ['audience-tabs', 'audience'],
+    ['drawer-audience-tabs', 'audience']
+  ];
+
+  targets.forEach(([id]) => {
+    renderFilterChips(id, [
       { label: 'All', value: 'all' },
       { label: "Men's", value: 'mens' },
       { label: "Women’s", value: 'womens' },
       { label: 'Unisex', value: 'unisex' }
     ], state.filters.audience, (value) => {
       state.filters.audience = value;
+      renderAllFilterUIs(rerender);
       rerender();
     });
+  });
 
-    renderFilterChips('category-chips', [
+  ['category-chips', 'drawer-category-chips'].forEach((id) => {
+    renderFilterChips(id, [
       { label: 'All Categories', value: 'all' },
       { label: 'Tops', value: 'Tops' },
       { label: 'Bottoms', value: 'Bottoms' },
       { label: 'Outerwear', value: 'Outerwear' }
     ], state.filters.category, (value) => {
       state.filters.category = value;
+      renderAllFilterUIs(rerender);
       rerender();
     });
+  });
 
-    renderFilterChips('condition-chips', [
-      { label: 'All Conditions', value: 'all' },
-      ...VALID_CONDITIONS.map((condition) => ({ label: condition, value: condition }))
-    ], state.filters.condition, (value) => {
+  ['condition-chips', 'drawer-condition-chips'].forEach((id) => {
+    renderFilterChips(id, [{ label: 'All Conditions', value: 'all' }, ...VALID_CONDITIONS.map((c) => ({ label: c, value: c }))], state.filters.condition, (value) => {
       state.filters.condition = value;
+      renderAllFilterUIs(rerender);
       rerender();
     });
+  });
 
+  ['letter-size-chips', 'drawer-letter-size-chips'].forEach((id) => {
+    renderFilterChips(id, LETTER_OPTIONS.map((s) => ({ label: s, value: s })), state.filters.letterSizes, (value) => {
+      const next = state.filters.letterSizes.includes(value)
+        ? state.filters.letterSizes.filter((v) => v !== value)
+        : [...state.filters.letterSizes, value];
+      state.filters.letterSizes = next;
+      renderAllFilterUIs(rerender);
+      rerender();
+    }, { multi: true });
+  });
+
+  ['waist-size-chips-wrap', 'drawer-waist-size-chips-wrap'].forEach((id) => {
+    renderFilterChips(id, state.waistOptions.map((n) => ({ label: String(n), value: String(n) })), state.filters.waistSizes.map(String), (value) => {
+      const n = Number(value);
+      const next = state.filters.waistSizes.includes(n)
+        ? state.filters.waistSizes.filter((v) => v !== n)
+        : [...state.filters.waistSizes, n];
+      state.filters.waistSizes = next;
+      renderAllFilterUIs(rerender);
+      rerender();
+    }, { multi: true });
+  });
+
+  const waistVisible = state.waistOptions.length > 0;
+  const drawerWaistSection = document.getElementById('drawer-waist-section');
+  const desktopWaist = document.getElementById('waist-size-chips-wrap');
+  if (drawerWaistSection) drawerWaistSection.style.display = waistVisible ? '' : 'none';
+  if (desktopWaist) desktopWaist.style.display = waistVisible ? 'flex' : 'none';
+
+  setMobileSyncFromState();
+  renderFilterSummary();
+}
+
+function setupCatalog(items) {
+  const grid = document.getElementById('catalog-grid');
+  if (!grid) return;
+
+  const rerender = () => {
     const filtered = applyCatalogFilters(items);
     const sorted = sortItems(filtered, state.filters.sort);
     renderCards(sorted, grid);
+    setMobileSyncFromState();
+    renderFilterSummary();
   };
 
-  sort?.addEventListener('change', () => {
-    state.filters.sort = sort.value;
+  state.waistOptions = getAllWaistOptions(items);
+  renderAllFilterUIs(rerender);
+
+  const searchDesktop = document.getElementById('search-filter');
+  const searchMobile = document.getElementById('search-filter-mobile');
+  const sortDesktop = document.getElementById('sort-filter');
+  const sortMobile = document.getElementById('sort-filter-mobile');
+  const newDesktop = document.getElementById('new-arrivals-only');
+  const newDrawer = document.getElementById('drawer-new-arrivals-only');
+
+  [searchDesktop, searchMobile].forEach((node) => node?.addEventListener('input', () => {
+    state.filters.search = node.value || '';
+    rerender();
+  }));
+
+  [sortDesktop, sortMobile].forEach((node) => node?.addEventListener('change', () => {
+    state.filters.sort = node.value;
+    rerender();
+  }));
+
+  [newDesktop, newDrawer].forEach((node) => node?.addEventListener('change', () => {
+    state.filters.newOnly = node.checked;
+    rerender();
+  }));
+
+  const drawer = document.getElementById('filter-drawer');
+  const openDrawerBtn = document.getElementById('open-filter-drawer');
+  const closeDrawerBtn = document.getElementById('filter-drawer-close');
+  const clearFiltersBtn = document.getElementById('clear-filters');
+  const applyFiltersBtn = document.getElementById('apply-filters');
+
+  const closeDrawer = () => {
+    if (!drawer) return;
+    drawer.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  openDrawerBtn?.addEventListener('click', () => {
+    drawer?.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  });
+  closeDrawerBtn?.addEventListener('click', closeDrawer);
+  drawer?.addEventListener('click', (e) => {
+    if (e.target === drawer) closeDrawer();
+  });
+
+  applyFiltersBtn?.addEventListener('click', () => {
+    closeDrawer();
     rerender();
   });
 
-  search?.addEventListener('input', () => {
-    state.filters.search = search.value || '';
-    rerender();
-  });
-
-  newOnly?.addEventListener('change', () => {
-    state.filters.newOnly = newOnly.checked;
+  clearFiltersBtn?.addEventListener('click', () => {
+    state.filters = {
+      ...state.filters,
+      audience: 'all',
+      category: 'all',
+      condition: 'all',
+      newOnly: false,
+      letterSizes: [],
+      waistSizes: []
+    };
+    renderAllFilterUIs(rerender);
     rerender();
   });
 
@@ -396,7 +616,6 @@ function setupCatalog(items) {
 function setupSoldPage(items) {
   const grid = document.getElementById('sold-grid');
   if (!grid) return;
-
   const soldItems = sortItems(items.filter((item) => item.status === 'sold'), 'Newest');
   renderCards(soldItems, grid, { soldView: true });
 }
@@ -404,8 +623,7 @@ function setupSoldPage(items) {
 function setupHome(items) {
   const arrivalsRoot = document.getElementById('arrivals-grid');
   if (!arrivalsRoot) return;
-
-  const arrivals = sortItems(items.filter((item) => item.status !== 'sold'), 'Newest').slice(0, 8);
+  const arrivals = sortItems(items.filter((item) => ['available', 'reserved'].includes(item.status)), 'Newest').slice(0, 8);
   renderCards(arrivals, arrivalsRoot);
 }
 
@@ -424,13 +642,11 @@ function parseCsv(text) {
       } else inQuotes = !inQuotes;
       continue;
     }
-
     if (ch === ',' && !inQuotes) {
       row.push(cell);
       cell = '';
       continue;
     }
-
     if ((ch === '\n' || ch === '\r') && !inQuotes) {
       if (ch === '\r' && text[i + 1] === '\n') i += 1;
       row.push(cell);
@@ -439,7 +655,6 @@ function parseCsv(text) {
       row = [];
       continue;
     }
-
     cell += ch;
   }
 
@@ -466,11 +681,9 @@ function csvRowsToItems(rows) {
     }
 
     const raw = Object.fromEntries(requiredHeader.map((key, idx) => [key, values[idx].trim()]));
-    const normalizedCategory = normalizeCategory(raw.category);
-
     return {
       ...raw,
-      category: normalizedCategory,
+      category: normalizeCategory(raw.category),
       price: Number(raw.price),
       status: raw.status.toLowerCase(),
       images: raw.images ? raw.images.split('|').map((s) => s.trim()).filter(Boolean) : [],
@@ -483,8 +696,7 @@ function csvRowsToItems(rows) {
 async function loadItems() {
   const res = await fetch('data/items.csv');
   if (!res.ok) throw new Error('Could not load inventory CSV');
-  const rows = parseCsv(await res.text());
-  return csvRowsToItems(rows);
+  return csvRowsToItems(parseCsv(await res.text()));
 }
 
 function showCopyFeedback(message) {
@@ -509,11 +721,9 @@ async function copyText(value) {
 }
 
 function applySharedCartFromQuery() {
-  const params = new URLSearchParams(window.location.search);
-  const incoming = params.get('items');
+  const incoming = new URLSearchParams(window.location.search).get('items');
   if (!incoming) return;
-  const ids = incoming.split('|').map((id) => id.trim()).filter(Boolean);
-  setCartIds(ids);
+  setCartIds(incoming.split('|').map((id) => id.trim()).filter(Boolean));
 }
 
 function renderCartPage(items) {
@@ -543,14 +753,13 @@ function renderCartPage(items) {
 
   shareBtn?.addEventListener('click', async () => {
     const current = getCartIds();
-    const url = `${window.location.origin}${window.location.pathname.replace('cart.html', 'cart.html')}?items=${current.join('|')}`;
-    await copyText(url);
+    const base = `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, 'cart.html')}`;
+    await copyText(`${base}?items=${current.join('|')}`);
     showCopyFeedback('Share link copied');
   });
 
   clearBtn?.addEventListener('click', () => {
-    const ok = window.confirm('Clear all items from your cart?');
-    if (!ok) return;
+    if (!window.confirm('Clear all items from your cart?')) return;
     setCartIds([]);
     renderCartPage(items);
     showCopyFeedback('Cart cleared');

@@ -56,6 +56,11 @@ An item shows **New Arrival** automatically when:
 - Use **Clear Cart** to empty cart items.
 - Opening a shared cart link replaces existing cart IDs with the shared IDs.
 
+## Catalog size filtering
+- Letter size chips: `XS`, `S`, `M`, `L`, `XL`, `XXL`.
+- Waist size chips are auto-generated from `size` + `fitsLike` values in `data/items.csv`.
+- Supported numeric parsing includes values like `32`, ranges like `31-32`, and slash lists like `32/34`.
+
 ## GitHub Pages deployment
 1. Push this repo to GitHub.
 2. In GitHub: **Settings → Pages**.
