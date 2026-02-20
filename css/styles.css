@@ -68,6 +68,11 @@ nav ul {
   margin: 0;
   padding: 0;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.cart-nav-item {
+  margin-left: auto;
 }
 
 nav a {
@@ -369,9 +374,22 @@ select,
 }
 
 @media (max-width: 720px) {
-  .header-inner { align-items: flex-start; flex-direction: column; }
+  .header-inner {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  nav {
+    width: 100%;
+  }
+  nav ul {
+    gap: 0.45rem;
+  }
+  .cart-nav-item {
+    order: -1;
+    margin-left: auto;
+  }
   .hero-card { padding: 1.4rem; }
-  .sticky-filters { top: 108px; }
+  .sticky-filters { top: 92px; }
 }
 
 .info-callout {
@@ -619,6 +637,11 @@ select,
   gap: 0.35rem;
 }
 
+.cart-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
 .cart-count {
   min-width: 1.2rem;
   padding: 0.05rem 0.34rem;
@@ -674,12 +697,12 @@ select,
 
 .dense-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
+  gap: 0.8rem;
 }
 
 .compact-card-body {
   position: relative;
-  padding: 0.65rem;
+  padding: 0.72rem;
 }
 
 .clamp-1 {
@@ -707,6 +730,24 @@ select,
   color: #fff;
   font-weight: 800;
   cursor: pointer;
+}
+
+.add-cart-btn:hover,
+.add-cart-btn:focus-visible {
+  background: #2a2a2a;
+  outline: none;
+}
+
+.clear-cart-btn {
+  background: #fff;
+  border-color: #d3a3b6;
+  color: #702440;
+}
+
+.clear-cart-btn:hover,
+.clear-cart-btn:focus-visible {
+  background: #ffeef5;
+  border-color: #c86f90;
 }
 
 .new-badge {

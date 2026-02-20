@@ -26,6 +26,7 @@ Sold items automatically leave the main catalog and appear on `recently-sold.htm
 - condition: `New`, `Very Good`, `Good`, `Fair`
 - audience: `mens`, `womens`, `unisex`
 - featured: `true` or `false`
+- New Arrival badge is automatic for listings created within the last 7 days.
 
 ## 5) Multiple images format
 Use `|` between image paths inside the `images` field:

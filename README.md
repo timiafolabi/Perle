@@ -38,7 +38,7 @@ PTG-0011,Cropped Zip Hoodie,Tops,28,S,S,Very Good,available,"No flaws, washed on
 
 ### New Arrival badge
 An item shows **New Arrival** automatically when:
-- `createdAt` is within the last 14 days, and
+- `createdAt` is within the last 7 days, and
 - `status` is not `sold`
 
 ## Pages
@@ -51,9 +51,9 @@ An item shows **New Arrival** automatically when:
 
 ## Cart behavior
 - Cart is stored in localStorage as an array of item IDs.
-- Use **Copy IDs** for comma-separated IDs.
-- Use **Copy Share Link** for URLs like:
+- Use **Share Cart** for URLs like:
   `cart.html?items=PTG-0001|PTG-0014`
+- Use **Clear Cart** to empty cart items.
 - Opening a shared cart link replaces existing cart IDs with the shared IDs.
 
 ## GitHub Pages deployment

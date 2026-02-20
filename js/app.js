@@ -30,7 +30,7 @@ function daysSince(dateString) {
 }
 
 function isNewArrival(item) {
-  return item.status !== 'sold' && daysSince(item.createdAt) <= 14;
+  return item.status !== 'sold' && daysSince(item.createdAt) <= 7;
 }
 
 function normalizeCategory(input) {
@@ -134,7 +134,7 @@ function applyCatalogFilters(items) {
   const search = state.filters.search.trim().toLowerCase();
 
   return items.filter((item) => {
-    if (item.status === 'sold') return false;
+    if (!['available', 'reserved'].includes(item.status)) return false;
     if (state.filters.audience !== 'all' && item.audience !== state.filters.audience) return false;
     if (state.filters.category !== 'all' && item.category !== state.filters.category) return false;
     if (state.filters.condition !== 'all' && item.condition !== state.filters.condition) return false;
@@ -149,8 +149,8 @@ function applyCatalogFilters(items) {
   });
 }
 
-function sizeLine(item) {
-  if (item.audience === 'womens') {
+function sizeLine(item, { womensLabel = false } = {}) {
+  if (womensLabel && item.audience === 'womens') {
     return `Women's size ${item.size} • Fits like ${item.fitsLike}`;
   }
   return `Size ${item.size} • Fits like ${item.fitsLike}`;
@@ -172,7 +172,7 @@ function renderCards(items, root, { soldView = false } = {}) {
       <div class="card-body compact-card-body">
         <h3 class="clamp-1">${item.title}</h3>
         <div class="card-price-row"><span class="price ${item.status === 'sold' ? 'sold' : ''}">${formatPrice(item.price)}</span>${statusBadge(item.status)}</div>
-        <p class="meta">${sizeLine(item)}</p>
+        <p class="meta">${sizeLine(item, { womensLabel: soldView })}</p>
         <p class="meta">${item.condition} • ${item.audience === 'mens' ? "Men's" : item.audience === 'womens' ? "Women's" : 'Unisex'}</p>
         <p class="item-id">${item.id}</p>
         ${soldView ? '' : `<button class="add-cart-btn" type="button" data-add-cart="${item.id}" aria-label="Add ${item.id} to cart">+</button>`}
@@ -225,7 +225,7 @@ function buildModal(items) {
         <button type="button" class="copy-id-btn" data-copy-id="${item.id}">Copy Item ID</button>
       </div>
       <p id="copy-feedback" class="copy-feedback" aria-live="polite"></p>
-      <p><strong>${formatPrice(item.price)}</strong> • ${sizeLine(item)}</p>
+      <p><strong>${formatPrice(item.price)}</strong> • ${sizeLine(item, { womensLabel: true })}</p>
       <p>${statusBadge(item.status)} <span class="meta">Condition: ${item.condition}</span></p>
       <p>${item.notes || 'No additional notes.'}</p>
       <p class="meta">Listed ${formatDate(item.createdAt)}</p>
@@ -531,27 +531,29 @@ function renderCartPage(items) {
         <img src="${safeImage(item.images[0])}" alt="${item.title}" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}'" />
         <div>
           <h3>${item.title}</h3>
-          <p class="meta">${formatPrice(item.price)} • ${sizeLine(item)} • ${item.id}</p>
+          <p class="meta">${formatPrice(item.price)} • ${sizeLine(item, { womensLabel: true })} • ${item.id}</p>
           <button type="button" class="copy-id-btn" data-remove-cart="${item.id}">Remove</button>
         </div>
       </article>
     `).join('');
   }
 
-  const copyIds = document.getElementById('copy-cart-ids');
-  const copyLink = document.getElementById('copy-cart-link');
+  const shareBtn = document.getElementById('share-cart-link');
+  const clearBtn = document.getElementById('clear-cart');
 
-  copyIds?.addEventListener('click', async () => {
-    const current = getCartIds();
-    await copyText(current.join(','));
-    showCopyFeedback('Copied cart IDs');
-  });
-
-  copyLink?.addEventListener('click', async () => {
+  shareBtn?.addEventListener('click', async () => {
     const current = getCartIds();
     const url = `${window.location.origin}${window.location.pathname.replace('cart.html', 'cart.html')}?items=${current.join('|')}`;
     await copyText(url);
-    showCopyFeedback('Copied share link');
+    showCopyFeedback('Share link copied');
+  });
+
+  clearBtn?.addEventListener('click', () => {
+    const ok = window.confirm('Clear all items from your cart?');
+    if (!ok) return;
+    setCartIds([]);
+    renderCartPage(items);
+    showCopyFeedback('Cart cleared');
   });
 }
 
